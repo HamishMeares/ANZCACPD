@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>CIED Peri-op Microlearning — MCQs</title>
+  <style>
+    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
+    body { margin: 0; background: #0b1020; color: #e9ecf1; }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 28px 16px 56px; }
+    header { margin-bottom: 18px; }
+    h1 { font-size: 1.35rem; margin: 0 0 6px; }
+    p.sub { margin: 0; color: #b9c2d0; line-height: 1.35; }
+
+    .card {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 14px;
+      padding: 16px;
+      margin: 14px 0;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    }
+
+    .sectionTitle {
+      margin: 24px 0 8px;
+      font-size: 1.05rem;
+      letter-spacing: 0.2px;
+      color: #dbe3f3;
+    }
+
+    .qtitle { margin: 0 0 10px; font-weight: 650; }
+    .choices { display: grid; gap: 10px; }
+
+    button.choice {
+      text-align: left;
+      width: 100%;
+      padding: 12px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.04);
+      color: #e9ecf1;
+      cursor: pointer;
+      transition: transform .04s ease, background .12s ease, border-color .12s ease;
+    }
+    button.choice:hover { background: rgba(255,255,255,0.08); }
+    button.choice:active { transform: translateY(1px); }
+    button.choice[disabled] { cursor: not-allowed; opacity: 0.9; }
+
+    .feedback {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.03);
+      line-height: 1.35;
+    }
+    .ok { border-color: rgba(72, 255, 170, 0.35); background: rgba(72, 255, 170, 0.08); }
+    .no { border-color: rgba(255, 90, 90, 0.40); background: rgba(255, 90, 90, 0.08); }
+
+    .metaRow { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 12px; }
+    .pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 10px; border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.04);
+      color: #b9c2d0;
+      font-size: 0.92rem;
+    }
+    .btnSmall {
+      padding: 8px 10px; border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
+      color: #e9ecf1; cursor: pointer;
+    }
+
+    .tutorial {
+      margin-top: 10px;
+      padding: 12px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.04);
+      color: #cfd7e6;
+      line-height: 1.5;
+    }
+
+    footer { margin-top: 28px; color: #97a3b8; font-size: 0.92rem; line-height: 1.35; }
+    a { color: #a8c7ff; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>CIED Peri-operative Microlearning — MCQs</h1>
+      <p class="sub">
+        Click an option to see immediate feedback and a brief rationale. Use “Reset” to try again.
+      </p>
+      <div class="metaRow">
+        <span class="pill" id="scorePill">Score: 0 / 0</span>
+        <button class="btnSmall" id="resetBtn" type="button">Reset all</button>
+        <button class="btnSmall" id="toggleTutorialBtn" type="button">Show/Hide tutorial</button>
+      </div>
+
+      <div class="tutorial" id="tutorialBox" style="display:none;">
+        <strong>Tutorial (very short):</strong>
+        <ul>
+          <li><strong>Risk driver:</strong> management is mainly determined by device type and whether the patient is <em>pacemaker-dependent</em>, plus the predicted EMI burden.</li>
+          <li><strong>High EMI + dependency:</strong> prefer <em>planned asynchronous pacing via programming</em> (VOO/DOO), rather than assuming magnet behaviour.</li>
+          <li><strong>Magnet behaviour varies:</strong> response differs by manufacturer/model, and for some systems magnet may be absent or non-sustained.</li>
+          <li><strong>Avoid unnecessary asynchronous pacing:</strong> in patients with strong intrinsic rhythm, asynchronous pacing can create <em>R-on-T</em> risk.</li>
+          <li><strong>Diathermy pad placement:</strong> aim to keep current path away from generator/leads—often contralateral limb placement.</li>
+        </ul>
+        <em>Note:</em> Always align with your local CIED guideline/device clinic advice for your site.
+      </div>
+    </header>
+
+    <main id="app"></main>
+
+    <footer>
+      Tip: To edit questions/answers later, change the <code>DATA</code> object in the script.
+      If you want references or richer tutorial content, add a “Resources” section at the bottom.
+    </footer>
+  </div>
+
+  <script>
+    // --- MCQ DATA ---
+    // Each question: prompt, choices [{key,text}], correctKey, and explanations.
+    // You can edit the rationale text freely to match your guideline wording.
+    const DATA = [
+      {
+        section: "✅ Pre-Test MCQs (before the tutorial)",
+        items: [
+          {
+            prompt: "1. Which factor most strongly determines how a pacemaker should be managed in theatre?",
+            choices: [
+              { key: "A", text: "Patient age" },
+              { key: "B", text: "Duration of surgery" },
+              { key: "C", text: "Type of diathermy used" },
+              { key: "D", text: "Device type and pacemaker dependency" },
+              { key: "E", text: "Whether the patient is on beta blockers" }
+            ],
+            correctKey: "D",
+            explanations: {
+              correct: "Device type + pacemaker dependency (and anticipated EMI) drives peri-op planning: monitoring, magnet vs programming, and backup pacing readiness.",
+              wrong: "The key determinant is device type + dependency; age, case length, and medications are secondary compared with dependency and EMI risk."
+            }
+          },
+          {
+            prompt: "2. Which pacemaker manufacturer most commonly fails to provide sustained asynchronous pacing when a magnet is applied?",
+            choices: [
+              { key: "A", text: "Medtronic (transvenous)" },
+              { key: "B", text: "Boston Scientific" },
+              { key: "C", text: "Abbott" },
+              { key: "D", text: "Biotronik" },
+              { key: "E", text: "MicroPort" }
+            ],
+            correctKey: "D",
+            explanations: {
+              correct: "Biotronik devices are classically taught as potentially giving only a brief asynchronous response rather than sustained asynchronous pacing with a magnet (model/programming dependent).",
+              wrong: "Magnet response varies by manufacturer/model; the classic “non-sustained/brief run” teaching point is associated with Biotronik."
+            }
+          },
+          {
+            prompt: "3. In a pacemaker-dependent patient with anticipated high EMI (e.g., monopolar diathermy near the generator), the preferred management is:",
+            choices: [
+              { key: "A", text: "Leave in DDD mode with no changes" },
+              { key: "B", text: "Program asynchronous pacing (e.g., VOO/DOO)" },
+              { key: "C", text: "Rely on the magnet without checking the device response" },
+              { key: "D", text: "Give a prophylactic amiodarone infusion" },
+              { key: "E", text: "Disable all pacing functions" }
+            ],
+            correctKey: "B",
+            explanations: {
+              correct: "For dependency + high EMI risk, proactively programming asynchronous pacing is the most controlled strategy, avoiding oversensing/inhibition.",
+              wrong: "In dependency + high EMI, leaving sensing on risks inhibition; relying on an unverified magnet response is unsafe."
+            }
+          },
+          {
+            prompt: "4. For a patient with a strong intrinsic rhythm, switching to VOO is avoided primarily because:",
+            choices: [
+              { key: "A", text: "It accelerates battery depletion rapidly" },
+              { key: "B", text: "It causes AV dyssynchrony" },
+              { key: "C", text: "It introduces avoidable R-on-T risk" },
+              { key: "D", text: "The ECG becomes unreadable" },
+              { key: "E", text: "It interferes with pulse oximetry" }
+            ],
+            correctKey: "C",
+            explanations: {
+              correct: "Asynchronous pacing can compete with intrinsic beats; if a pacing spike lands on the vulnerable period it can precipitate ventricular arrhythmia (R-on-T).",
+              wrong: "The principal safety concern is competitive pacing → avoidable R-on-T risk in patients who aren’t dependent."
+            }
+          },
+          {
+            prompt: "5. The safest location for a monopolar diathermy return plate in a patient with a left-sided pacemaker is:",
+            choices: [
+              { key: "A", text: "Left upper chest" },
+              { key: "B", text: "Left flank" },
+              { key: "C", text: "Abdomen directly over the generator" },
+              { key: "D", text: "Right thigh or contralateral limb" },
+              { key: "E", text: "Over the sternum" }
+            ],
+            correctKey: "D",
+            explanations: {
+              correct: "Place the return electrode so the current path avoids the generator/leads—contralateral limb placement is a common safest default.",
+              wrong: "Best practice is to minimise current vector through the device/leads; contralateral limb placement generally achieves that."
+            }
+          }
+        ]
+      },
+      {
+        section: "✅ Post-Test MCQs (after the tutorial)",
+        items: [
+          {
+            prompt: "1. A patient has a Medtronic Micra leadless pacemaker. When planning for high-EMI surgery, which statement is TRUE?",
+            choices: [
+              { key: "A", text: "A magnet will reliably produce VOO mode" },
+              { key: "B", text: "Magnet changes the pacing only if battery is full" },
+              { key: "C", text: "A magnet has no effect; asynchronous pacing requires programming" },
+              { key: "D", text: "The device switches to DOO with a magnet" },
+              { key: "E", text: "It automatically inhibits sensing during diathermy" }
+            ],
+            correctKey: "C",
+            explanations: {
+              correct: "Leadless systems may not respond to magnets in the way transvenous pacemakers do; if asynchronous pacing is required, plan for device-team programming.",
+              wrong: "Do not assume a magnet will produce a safe asynchronous mode in leadless systems; plan programming if needed."
+            }
+          },
+          {
+            prompt: "2. A Biotronik pacemaker is expected to encounter monopolar diathermy. Applying a magnet typically results in:",
+            choices: [
+              { key: "A", text: "Sustained DOO mode" },
+              { key: "B", text: "Sustained VOO mode" },
+              { key: "C", text: "A brief asynchronous run then a return to normal sensing" },
+              { key: "D", text: "No change in pacing behaviour" },
+              { key: "E", text: "Complete pacing inhibition" }
+            ],
+            correctKey: "C",
+            explanations: {
+              correct: "The classic teaching is a short asynchronous response with a magnet (not necessarily sustained), so you should not rely on magnet for high-risk EMI cases.",
+              wrong: "The key point: magnet response may be non-sustained; verify manufacturer/model behaviour or use programming for high-risk situations."
+            }
+          },
+          {
+            prompt: "3. In a non–pacemaker-dependent patient undergoing laparoscopic cholecystectomy using monopolar diathermy, the best approach is:",
+            choices: [
+              { key: "A", text: "Automatically reprogram to VOO" },
+              { key: "B", text: "Leave the device in DDD/VVI and optimise diathermy pad placement" },
+              { key: "C", text: "Disable all pacing" },
+              { key: "D", text: "Apply a magnet throughout" },
+              { key: "E", text: "Place the return plate adjacent to the generator" }
+            ],
+            correctKey: "B",
+            explanations: {
+              correct: "If not dependent and EMI risk is moderate, many cases can proceed with baseline settings plus EMI mitigation (pad placement, short bursts, lowest effective power) and readiness to escalate.",
+              wrong: "Routine asynchronous pacing or magnets add risk (competitive pacing) without clear benefit in non-dependent patients—focus on EMI mitigation and monitoring."
+            }
+          },
+          {
+            prompt: "4. Which statement best explains why contralateral limb placement of the diathermy return plate is recommended?",
+            choices: [
+              { key: "A", text: "It minimises skin burns" },
+              { key: "B", text: "It improves electrocautery cutting efficiency" },
+              { key: "C", text: "It ensures the current vector avoids the pacemaker and leads" },
+              { key: "D", text: "It reduces EMI by changing the frequency" },
+              { key: "E", text: "It allows lower diathermy power settings" }
+            ],
+            correctKey: "C",
+            explanations: {
+              correct: "The aim is to keep the electrical return path away from the generator/leads, reducing EMI exposure and inappropriate sensing/inhibition.",
+              wrong: "The main rationale is geometric: direct the current path away from the CIED system."
+            }
+          },
+          {
+            prompt: "5. Why is confirming device manufacturer and model before relying on a magnet critical?",
+            choices: [
+              { key: "A", text: "Battery life varies between brands" },
+              { key: "B", text: "Some manufacturers use different screw lengths in leads" },
+              { key: "C", text: "It affects antibiotic prophylaxis" },
+              { key: "D", text: "Magnet responses differ significantly between manufacturers and models" },
+              { key: "E", text: "It determines which ECG leads should be used" }
+            ],
+            correctKey: "D",
+            explanations: {
+              correct: "Magnet response is not uniform across brands/models (and can be programmed differently), so relying on a magnet without confirming behaviour can be unsafe.",
+              wrong: "The key issue is variability: magnet response is manufacturer/model (and sometimes programming) dependent."
+            }
+          }
+        ]
+      }
+    ];
+
+    // --- RENDER + LOGIC ---
+    const app = document.getElementById("app");
+    const scorePill = document.getElementById("scorePill");
+    const resetBtn = document.getElementById("resetBtn");
+    const tutorialBox = document.getElementById("tutorialBox");
+    const toggleTutorialBtn = document.getElementById("toggleTutorialBtn");
+
+    // State
+    const state = {
+      answered: new Map(), // key: qid -> { chosenKey, correct }
+      total: 0
+    };
+
+    function updateScore() {
+      const answeredCount = state.answered.size;
+      let correctCount = 0;
+      for (const v of state.answered.values()) if (v.correct) correctCount++;
+      scorePill.textContent = `Score: ${correctCount} / ${state.total}  (answered ${answeredCount})`;
+    }
+
+    function resetAll() {
+      state.answered.clear();
+      render();
+    }
+
+    function toggleTutorial() {
+      tutorialBox.style.display = (tutorialBox.style.display === "none") ? "block" : "none";
+    }
+
+    resetBtn.addEventListener("click", resetAll);
+    toggleTutorialBtn.addEventListener("click", toggleTutorial);
+
+    function render() {
+      app.innerHTML = "";
+
+      // compute total
+      let total = 0;
+      for (const sec of DATA) total += sec.items.length;
+      state.total = total;
+
+      let qIndexGlobal = 0;
+
+      for (const sec of DATA) {
+        const h = document.createElement("div");
+        h.className = "sectionTitle";
+        h.textContent = sec.section;
+        app.appendChild(h);
+
+        sec.items.forEach((q) => {
+          const qid = `q${qIndexGlobal++}`;
+
+          const card = document.createElement("div");
+          card.className = "card";
+
+          const title = document.createElement("div");
+          title.className = "qtitle";
+          title.textContent = q.prompt;
+          card.appendChild(title);
+
+          const choicesWrap = document.createElement("div");
+          choicesWrap.className = "choices";
+
+          const answered = state.answered.get(qid);
+
+          q.choices.forEach((c) => {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "choice";
+            btn.textContent = `${c.key}. ${c.text}`;
+
+            if (answered) {
+              btn.disabled = true;
+              // subtle indication of chosen option
+              if (answered.chosenKey === c.key) {
+                btn.style.borderColor = answered.correct
+                  ? "rgba(72, 255, 170, 0.55)"
+                  : "rgba(255, 90, 90, 0.60)";
+                btn.style.background = answered.correct
+                  ? "rgba(72, 255, 170, 0.10)"
+                  : "rgba(255, 90, 90, 0.10)";
+              }
+            } else {
+              btn.addEventListener("click", () => {
+                const correct = (c.key === q.correctKey);
+                state.answered.set(qid, { chosenKey: c.key, correct });
+                render();
+              });
+            }
+
+            choicesWrap.appendChild(btn);
+          });
+
+          card.appendChild(choicesWrap);
+
+          if (answered) {
+            const fb = document.createElement("div");
+            fb.className = "feedback " + (answered.correct ? "ok" : "no");
+
+            const icon = answered.correct ? "✅ Correct." : "❌ Not quite.";
+            const rationale = answered.correct ? q.explanations.correct : q.explanations.wrong;
+
+            const chosen = answered.chosenKey;
+            const correctKey = q.correctKey;
+
+            fb.innerHTML = `
+              <div><strong>${icon}</strong> You chose <strong>${chosen}</strong>. Correct answer: <strong>${correctKey}</strong>.</div>
+              <div style="margin-top:6px;">${rationale}</div>
+            `;
+            card.appendChild(fb);
+          }
+
+          app.appendChild(card);
+        });
+      }
+
+      updateScore();
+    }
+
+    render();
+  </script>
+</body>
+</html>
