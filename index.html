@@ -28,8 +28,17 @@
       color: #dbe3f3;
     }
 
-    .qtitle { margin: 0 0 10px; font-weight: 650; }
+    /* ✅ Larger question font */
+    .qtitle {
+      margin: 0 0 12px;
+      font-weight: 700;
+      font-size: 1.22rem;   /* was default */
+      line-height: 1.35;
+    }
+
     .choices { display: grid; gap: 10px; }
+
+    .choiceBlock { display: grid; gap: 8px; } /* button + feedback under it */
 
     button.choice {
       text-align: left;
@@ -41,13 +50,13 @@
       color: #e9ecf1;
       cursor: pointer;
       transition: transform .04s ease, background .12s ease, border-color .12s ease;
+      font-size: 1.02rem;
+      line-height: 1.35;
     }
     button.choice:hover { background: rgba(255,255,255,0.08); }
     button.choice:active { transform: translateY(1px); }
-    button.choice[disabled] { cursor: not-allowed; opacity: 0.9; }
 
     .feedback {
-      margin-top: 10px;
       padding: 10px 12px;
       border-radius: 12px;
       border: 1px solid rgba(255,255,255,0.14);
@@ -85,6 +94,11 @@
 
     footer { margin-top: 28px; color: #97a3b8; font-size: 0.92rem; line-height: 1.35; }
     a { color: #a8c7ff; }
+    code { color: #d6e2ff; }
+
+    /* subtle marker for currently chosen option */
+    .chosen-ok { border-color: rgba(72, 255, 170, 0.55) !important; background: rgba(72, 255, 170, 0.10) !important; }
+    .chosen-no { border-color: rgba(255, 90, 90, 0.60) !important; background: rgba(255, 90, 90, 0.10) !important; }
   </style>
 </head>
 <body>
@@ -92,7 +106,7 @@
     <header>
       <h1>CIED Peri-operative Microlearning — MCQs</h1>
       <p class="sub">
-        Click an option to see immediate feedback and a brief rationale. Use “Reset” to try again.
+        Click an option to see immediate feedback and a brief rationale. You can change your answer at any time.
       </p>
       <div class="metaRow">
         <span class="pill" id="scorePill">Score: 0 / 0</span>
@@ -117,14 +131,10 @@
 
     <footer>
       Tip: To edit questions/answers later, change the <code>DATA</code> object in the script.
-      If you want references or richer tutorial content, add a “Resources” section at the bottom.
     </footer>
   </div>
 
   <script>
-    // --- MCQ DATA ---
-    // Each question: prompt, choices [{key,text}], correctKey, and explanations.
-    // You can edit the rationale text freely to match your guideline wording.
     const DATA = [
       {
         section: "✅ Pre-Test MCQs (before the tutorial)",
@@ -288,24 +298,22 @@
       }
     ];
 
-    // --- RENDER + LOGIC ---
     const app = document.getElementById("app");
     const scorePill = document.getElementById("scorePill");
     const resetBtn = document.getElementById("resetBtn");
     const tutorialBox = document.getElementById("tutorialBox");
     const toggleTutorialBtn = document.getElementById("toggleTutorialBtn");
 
-    // State
+    // ✅ Allow changing answers anytime: store latest choice per question.
     const state = {
-      answered: new Map(), // key: qid -> { chosenKey, correct }
+      answered: new Map(), // qid -> { chosenKey, correct }
       total: 0
     };
 
     function updateScore() {
-      const answeredCount = state.answered.size;
       let correctCount = 0;
       for (const v of state.answered.values()) if (v.correct) correctCount++;
-      scorePill.textContent = `Score: ${correctCount} / ${state.total}  (answered ${answeredCount})`;
+      scorePill.textContent = `Score: ${correctCount} / ${state.total} (answered ${state.answered.size})`;
     }
 
     function resetAll() {
@@ -338,6 +346,7 @@
 
         sec.items.forEach((q) => {
           const qid = `q${qIndexGlobal++}`;
+          const answered = state.answered.get(qid);
 
           const card = document.createElement("div");
           card.className = "card";
@@ -350,55 +359,49 @@
           const choicesWrap = document.createElement("div");
           choicesWrap.className = "choices";
 
-          const answered = state.answered.get(qid);
-
           q.choices.forEach((c) => {
+            // ✅ Wrap each choice + (optional) feedback so feedback can appear directly under it
+            const block = document.createElement("div");
+            block.className = "choiceBlock";
+
             const btn = document.createElement("button");
             btn.type = "button";
             btn.className = "choice";
             btn.textContent = `${c.key}. ${c.text}`;
 
-            if (answered) {
-              btn.disabled = true;
-              // subtle indication of chosen option
-              if (answered.chosenKey === c.key) {
-                btn.style.borderColor = answered.correct
-                  ? "rgba(72, 255, 170, 0.55)"
-                  : "rgba(255, 90, 90, 0.60)";
-                btn.style.background = answered.correct
-                  ? "rgba(72, 255, 170, 0.10)"
-                  : "rgba(255, 90, 90, 0.10)";
-              }
-            } else {
-              btn.addEventListener("click", () => {
-                const correct = (c.key === q.correctKey);
-                state.answered.set(qid, { chosenKey: c.key, correct });
-                render();
-              });
+            // highlight currently chosen option
+            if (answered && answered.chosenKey === c.key) {
+              btn.classList.add(answered.correct ? "chosen-ok" : "chosen-no");
             }
 
-            choicesWrap.appendChild(btn);
+            // ✅ clicking updates selection (no disabling)
+            btn.addEventListener("click", () => {
+              const correct = (c.key === q.correctKey);
+              state.answered.set(qid, { chosenKey: c.key, correct });
+              render();
+            });
+
+            block.appendChild(btn);
+
+            // ✅ feedback appears directly below the chosen option
+            if (answered && answered.chosenKey === c.key) {
+              const fb = document.createElement("div");
+              fb.className = "feedback " + (answered.correct ? "ok" : "no");
+
+              const icon = answered.correct ? "✅ Correct." : "❌ Not quite.";
+              const rationale = answered.correct ? q.explanations.correct : q.explanations.wrong;
+
+              fb.innerHTML = `
+                <div><strong>${icon}</strong> Correct answer: <strong>${q.correctKey}</strong>.</div>
+                <div style="margin-top:6px;">${rationale}</div>
+              `;
+              block.appendChild(fb);
+            }
+
+            choicesWrap.appendChild(block);
           });
 
           card.appendChild(choicesWrap);
-
-          if (answered) {
-            const fb = document.createElement("div");
-            fb.className = "feedback " + (answered.correct ? "ok" : "no");
-
-            const icon = answered.correct ? "✅ Correct." : "❌ Not quite.";
-            const rationale = answered.correct ? q.explanations.correct : q.explanations.wrong;
-
-            const chosen = answered.chosenKey;
-            const correctKey = q.correctKey;
-
-            fb.innerHTML = `
-              <div><strong>${icon}</strong> You chose <strong>${chosen}</strong>. Correct answer: <strong>${correctKey}</strong>.</div>
-              <div style="margin-top:6px;">${rationale}</div>
-            `;
-            card.appendChild(fb);
-          }
-
           app.appendChild(card);
         });
       }
